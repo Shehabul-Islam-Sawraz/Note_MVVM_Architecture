@@ -9,7 +9,7 @@ import androidx.room.Update;
 
 import java.util.List;
 
-@Dao
+@Dao // Dao means Data Access Object, which is a room entity to connect with database
 public interface NoteDataInterface { // This is a interface that will be implemented by the room. Room will create
                                  // all the necessary codes for us.
     @Insert // We are defining that 'insert(Note note)' method will be used to insert data in database
