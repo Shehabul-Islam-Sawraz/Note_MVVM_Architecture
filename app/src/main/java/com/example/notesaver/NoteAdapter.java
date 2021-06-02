@@ -55,4 +55,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
         this.notes = notes;
         notifyDataSetChanged(); // This is used to notify the adapter that our data has been changed
     }
+
+    public Note getNoteAtPosition(int position) {
+        return notes.get(position);
+    }
 }
