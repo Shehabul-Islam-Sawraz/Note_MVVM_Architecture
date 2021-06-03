@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
             public void onChanged(List<Note> notes) {
                 // This function will be called when we start observing. So it will be called at
                 // the moment the app is instantiated.
-                noteAdapter.setNotes(notes);
+                noteAdapter.submitList(notes);
             }
         });
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT|ItemTouchHelper.RIGHT) { // This is for swiping an item
