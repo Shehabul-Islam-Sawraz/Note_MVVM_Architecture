@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -25,11 +24,14 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final int ADD_NOTE_REQUEST = 1;
+    public static final int EDIT_NOTE_REQUEST = 1;
     private NoteViewModel noteViewModel;
     private RecyclerView recyclerView;
     private NoteAdapter noteAdapter;
     private FloatingActionButton addNoteButton;
     private ActivityResultLauncher<Intent> addNoteActivityResultLauncher;
+    private ActivityResultLauncher<Intent> editNoteActivityResultLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,15 +43,15 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(noteAdapter);
         addNoteButton = findViewById(R.id.note_add);
 
-        addNoteActivityResultLauncher = registerForActivityResult(
+        addNoteActivityResultLauncher = registerForActivityResult( // This is alternative of 'onActivityResult'which has been depricated
                 new ActivityResultContracts.StartActivityForResult(),
                 result ->  {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
-                        String title = data.getStringExtra(AddNote.EXTRA_TITLE);
-                        String description = data.getStringExtra(AddNote.EXTRA_DESCRIPTION);
-                        int priority = data.getIntExtra(AddNote.EXTRA_PRIORITY, 1);
-                        int saved = data.getIntExtra(AddNote.NOTE_SAVED,1);
+                        String title = data.getStringExtra(AddEditNote.EXTRA_TITLE);
+                        String description = data.getStringExtra(AddEditNote.EXTRA_DESCRIPTION);
+                        int priority = data.getIntExtra(AddEditNote.EXTRA_PRIORITY, 1);
+                        int saved = data.getIntExtra(AddEditNote.NOTE_SAVED,1);
                         if (saved == 200) {
                             Note note = new Note(title, description, priority);
                             noteViewModel.insert(note);
@@ -61,8 +63,31 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+        editNoteActivityResultLauncher = registerForActivityResult( // This is alternative of 'onActivityResult'which has been depricated
+                new ActivityResultContracts.StartActivityForResult(),
+                result ->  {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        int id = data.getIntExtra(AddEditNote.EXTRA_ID,-1);
+                        if(id==-1){
+                            Toast.makeText(this, "Note can't be updated", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String title = data.getStringExtra(AddEditNote.EXTRA_TITLE);
+                        String description = data.getStringExtra(AddEditNote.EXTRA_DESCRIPTION);
+                        int priority = data.getIntExtra(AddEditNote.EXTRA_PRIORITY, 1);
+                        Note note = new Note(title, description, priority);
+                        note.setId(id);
+                        noteViewModel.update(note);
+                        Toast.makeText(MainActivity.this, "Note Updated", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        Toast.makeText(MainActivity.this, "Can't Update the Note", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
         addNoteButton.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, AddNote.class);
+            Intent intent = new Intent(MainActivity.this, AddEditNote.class);
             //startActivity(intent);
             addNoteActivityResultLauncher.launch(intent);
         });
@@ -75,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 noteAdapter.setNotes(notes);
             }
         });
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT|ItemTouchHelper.RIGHT) {
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT|ItemTouchHelper.RIGHT) { // This is for swiping an item
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
@@ -86,7 +111,19 @@ public class MainActivity extends AppCompatActivity {
                 noteViewModel.delete(noteAdapter.getNoteAtPosition(viewHolder.getAdapterPosition()));
                 Toast.makeText(MainActivity.this, "Note Deleted Successfully", Toast.LENGTH_SHORT).show();
             }
-        }).attachToRecyclerView(recyclerView);
+        }).attachToRecyclerView(recyclerView); // Adding the functionality to the items of recycler view
+
+        noteAdapter.setOnItemClickListener(new NoteAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Note note) {
+                Intent intent = new Intent(MainActivity.this, AddEditNote.class);
+                intent.putExtra(AddEditNote.EXTRA_TITLE,note.getTitle());
+                intent.putExtra(AddEditNote.EXTRA_ID,note.getId());
+                intent.putExtra(AddEditNote.EXTRA_DESCRIPTION,note.getDescription());
+                intent.putExtra(AddEditNote.EXTRA_PRIORITY,note.getPriority());
+                editNoteActivityResultLauncher.launch(intent);
+            }
+        });
     }
 
     /*@Override

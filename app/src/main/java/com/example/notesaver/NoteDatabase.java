@@ -34,6 +34,7 @@ public abstract class NoteDatabase extends RoomDatabase {
         public void onCreate(@NonNull SupportSQLiteDatabase db) { // This function will be called when the database is created. On another note, when our instance will be first created, instance will call this onCreate method.
             super.onCreate(db);
             Executors.newFixedThreadPool(1).execute(()->{
+                // Inserting some default values
                 instance.noteDao().insert(new Note("Title 1","Description 1",1));
                 instance.noteDao().insert(new Note("Title 2","Description 2",2));
                 instance.noteDao().insert(new Note("Title 3","Description 3",3));

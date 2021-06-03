@@ -12,8 +12,9 @@ import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Toast;
 
-public class AddNote extends AppCompatActivity {
+public class AddEditNote extends AppCompatActivity {
 
+    public static final String EXTRA_ID = "com.example.notesaver.EXTRA_ID";
     public static final String EXTRA_TITLE = "com.example.notesaver.EXTRA_TITLE";
     public static final String EXTRA_DESCRIPTION = "com.example.notesaver.EXTRA_DESCRIPTION";
     public static final String EXTRA_PRIORITY = "com.example.notesaver.EXTRA_PRIORITY";
@@ -37,7 +38,16 @@ public class AddNote extends AppCompatActivity {
         priority.setMaxValue(10);
 
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close);
-        setTitle("Add New Note");
+        Intent intent = getIntent();
+        if(intent.hasExtra(EXTRA_ID)){
+            setTitle("Edit Note");
+            title.setText(intent.getStringExtra(EXTRA_TITLE));
+            description.setText(intent.getStringExtra(EXTRA_DESCRIPTION));
+            priority.setValue(intent.getIntExtra(EXTRA_PRIORITY,1));
+        }
+        else{
+            setTitle("Add New Note");
+        }
     }
 
     @Override
@@ -70,11 +80,15 @@ public class AddNote extends AppCompatActivity {
         }
         else{
             Intent intent = new Intent();
+            int id = getIntent().getIntExtra(EXTRA_ID,-1);
             intent.putExtra(EXTRA_TITLE,note_title);
             intent.putExtra(EXTRA_DESCRIPTION,note_description);
             intent.putExtra(EXTRA_PRIORITY,note_priority);
             intent.putExtra(NOTE_SAVED,200);
-            setResult(RESULT_OK,intent);
+            if(id!=-1){
+                intent.putExtra(EXTRA_ID, id);
+            }
+            setResult(RESULT_OK,intent); // This intent will be accessed from MainActivity
             finish();
         }
     }
